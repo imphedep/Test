@@ -1,6 +1,103 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/imphedep/core/refs/heads/main/PheYeuPhe.lua"))()
 
 -- ==========================================
+-- [MEOW HUB FIX] SUPPRESS M1WeldFor NIL SPAM + ORPHAN WELD CLEANER
+-- Boss man: đây là fix chống lag farm từ spam error EffectContainer
+-- ==========================================
+do
+    -- Hook warn/error/print để chặn log flood từ M1WeldFor HeartbeatLoopFor
+    local _real_error = error
+    local _real_warn = warn
+    local _real_print = print
+
+    local BLOCKED = {
+        "attempt to index nil with",
+        "M1WeldFor",
+        "HeartbeatLoopFor",
+        "EffectContainer",
+        "ControlRework",
+        "unknown index.*PartType",
+        "TweenService:Create failed because Instance is null",
+        "sanitized ID rbxassetid",
+        "Animation failed to load",
+    }
+
+    local function _shouldBlock(msg)
+        if type(msg) ~= "string" then return false end
+        for _, pat in ipairs(BLOCKED) do
+            if msg:find(pat) then return true end
+        end
+        return false
+    end
+
+    local function _joinArgs(...)
+        local t = {}
+        for _, v in ipairs({...}) do t[#t+1] = tostring(v) end
+        return table.concat(t, " ")
+    end
+
+    getgenv().error = function(msg, level)
+        if _shouldBlock(tostring(msg)) then return end
+        return _real_error(msg, level)
+    end
+
+    getgenv().warn = function(...)
+        if _shouldBlock(_joinArgs(...)) then return end
+        return _real_warn(...)
+    end
+
+    getgenv().print = function(...)
+        if _shouldBlock(_joinArgs(...)) then return end
+        return _real_print(...)
+    end
+
+    -- Orphan weld/effect cleaner: dọn WeldConstraint/Motor6D bị nil Part mỗi 3s
+    -- Đây là thứ làm game loop spam error rồi lag khi farm
+    local RunService = game:GetService("RunService")
+    local Players = game:GetService("Players")
+    local _localPlr = Players.LocalPlayer
+    local _lastClean = 0
+    local CLEAN_INTERVAL = 3
+
+    RunService.Heartbeat:Connect(function()
+        local now = tick()
+        if now - _lastClean < CLEAN_INTERVAL then return end
+        _lastClean = now
+
+        local effectContainer = game:GetService("ReplicatedStorage"):FindFirstChild("EffectContainer")
+        if not effectContainer then return end
+
+        local char = _localPlr.Character
+        for _, obj in ipairs(effectContainer:GetDescendants()) do
+            pcall(function()
+                -- Destroy orphan welds không có Part0/Part1 hợp lệ
+                if obj:IsA("WeldConstraint") or obj:IsA("Motor6D") then
+                    if not obj.Part0 or not obj.Part1 then
+                        obj:Destroy()
+                        return
+                    end
+                    -- Part tồn tại nhưng parent đã bị destroy (nil parent)
+                    if not obj.Part0.Parent or not obj.Part1.Parent then
+                        obj:Destroy()
+                        return
+                    end
+                end
+                -- Destroy effect model cấp 1 dưới EffectContainer nếu char nil
+                if obj.Parent == effectContainer and obj:IsA("Model") then
+                    if not char then
+                        obj:Destroy()
+                    end
+                end
+            end)
+        end
+    end)
+end
+-- ==========================================
+-- [END FIX]
+-- ==========================================
+
+
+-- ==========================================
 -- CHẶN ÂM THANH RÁC TỪ ĐẦU (CHỐNG LAG & SPAM LOG)
 -- ==========================================
 local badSoundId = "74728593468749"
