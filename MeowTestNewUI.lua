@@ -1,21 +1,34 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/imphedep/core/refs/heads/main/PheYeuPhe.lua"))()
 
 -- ==========================================
--- FIX LỖI SPAM ÂM THANH GÂY LAG
+-- CHẶN ÂM THANH RÁC TỪ ĐẦU (CHỐNG LAG & SPAM LOG)
 -- ==========================================
-local targetSoundId = "74728593468749"
-task.spawn(function()
-    local function CheckSound(obj)
-        if obj:IsA("Sound") and string.find(obj.SoundId, targetSoundId) then
-            obj:Destroy() -- Xóa ngay lập tức để không load và không báo lỗi
+local badSoundId = "74728593468749"
+local RunService = game:GetService("RunService")
+
+local function killSound(obj)
+    if obj:IsA("Sound") and string.find(obj.SoundId, badSoundId) then
+        obj:Destroy()
+    end
+end
+
+-- Quét ngay lập tức các âm thanh đang có sẵn trong game
+for _, v in pairs(game:GetDescendants()) do
+    killSound(v)
+end
+
+-- Hook để chặn ngay khi nó vừa được sinh ra
+game.DescendantAdded:Connect(killSound)
+workspace.DescendantAdded:Connect(killSound)
+game:GetService("SoundService").DescendantAdded:Connect(killSound)
+
+-- Quét liên tục mỗi frame để bóp nghẹt nó nếu nó lọt qua khe hở
+RunService.Heartbeat:Connect(function()
+    for _, v in ipairs(workspace:GetDescendants()) do
+        if v:IsA("Sound") and string.find(v.SoundId, badSoundId) then
+            v:Destroy()
         end
     end
-    -- Quét âm thanh đang có sẵn trong game
-    for _, v in pairs(game:GetDescendants()) do
-        CheckSound(v)
-    end
-    -- Chặn và xóa các âm thanh mới được thêm vào
-    game.DescendantAdded:Connect(CheckSound)
 end)
 
 -- ==========================================
