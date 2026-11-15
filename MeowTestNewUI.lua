@@ -1,6 +1,24 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/imphedep/core/refs/heads/main/PheYeuPhe.lua"))()
 
 -- ==========================================
+-- FIX LỖI SPAM ÂM THANH GÂY LAG
+-- ==========================================
+local targetSoundId = "74728593468749"
+task.spawn(function()
+    local function CheckSound(obj)
+        if obj:IsA("Sound") and string.find(obj.SoundId, targetSoundId) then
+            obj:Destroy() -- Xóa ngay lập tức để không load và không báo lỗi
+        end
+    end
+    -- Quét âm thanh đang có sẵn trong game
+    for _, v in pairs(game:GetDescendants()) do
+        CheckSound(v)
+    end
+    -- Chặn và xóa các âm thanh mới được thêm vào
+    game.DescendantAdded:Connect(CheckSound)
+end)
+
+-- ==========================================
 -- KHỞI TẠO FLUENTPLUS
 -- ==========================================
 local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/discoart/FluentPlus/refs/heads/main/release.lua"))()
@@ -9,8 +27,8 @@ local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/d
 local v2 = lib:CreateWindow({
     Title = "Meow Hub",
     SubTitle = "Blox Fruit [ BETA ]",
-    TitleIcon = "rbxassetid://114761144239319",
-    Image = "rbxassetid://114761144239319",
+    TitleIcon = "rbxassetid://102423661438105",
+    Image = "rbxassetid://102423661438105",
     DropdownsOutsideWindow = true,
     Size = UDim2.fromOffset(580, 460),
     TabWidth = 160,
@@ -170,7 +188,7 @@ Icon.Parent = ToggleFrame
 Icon.Size = UDim2.new(0.8, 0, 0.8, 0)
 Icon.Position = UDim2.new(0.1, 0, 0.1, 0)
 Icon.BackgroundTransparency = 1
-Icon.Image = "rbxassetid://114761144239319"
+Icon.Image = "rbxassetid://13148598100"
 Icon.ScaleType = Enum.ScaleType.Fit
 Icon.Name = "Icon"
 Icon.ZIndex = 2
