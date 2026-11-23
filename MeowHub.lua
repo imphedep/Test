@@ -1,12 +1,5 @@
 local Features = {}
-
--- === WHITELIST REMOVED / BYPASSED ===
-rejectWhitelist = function(...) return true end
-local function _orig_rejectWhitelist(...) end
--- === END WHITELIST BYPASS ===
-
-
-local blackScreen, blackScreen2, HttpService, nextEntry2, nextEntry3, nextEntry  -- rejectWhitelist kept global (bypassed)
+local blackScreen, blackScreen2, HttpService, rejectWhitelist, nextEntry2, nextEntry3, nextEntry
 local logPrefix, hasEntry, entryKey, hasEntry2, entryValue, entryKey2, hasEntry3, entryValue2
 local result, entryKey3, hasEntry4, entryValue3, entryKey4, hasEntry5, entryValue4, entryKey5
 local hasEntry6, entryValue5, entryKey6, hasEntry7, entryValue6, entryKey7, hasEntry8, entryKey8
@@ -31,16 +24,48 @@ do
 
     -- Verify whitelist session
     function Features.verifyWhitelistSession()
-        -- WHITELIST BYPASSED - no HTTP, always success
-        pcall(function()
-            if Runtime.updateWhitelistStatus then
-                Runtime.updateWhitelistStatus("Whitelist bypassed")
-            end
-        end)
-        Runtime.verificationResponse = { StatusCode = 200, Body = '{"ok":true,"valid":true}' }
-        Runtime.verificationError = nil
-        Runtime.whitelistOk = true
-        return {}, {}, {}, {}, {}, {}, 0, true, Runtime.verificationResponse, nil, true
+        local sharedState, sharedState2, sharedState3, sharedState4, sharedState5, sharedState6 = {}, {}, {}, {}, {}, {}
+        Runtime.updateWhitelistStatus("Verifying whitelist...")
+        os.clock()
+        sharedState.value = tostring(os.time())
+        sharedState2.value = Runtime.encodeHex(289181186, Runtime.transformWhitelistField(
+            "c6949ccd512754b94f27f4029fc0acc15de67945a0d401721f1c2abe46c4a8c3",
+            "key",
+            "1",
+            Runtime.whitelistKey
+        ))
+        sharedState3.value = Runtime.encodeHex(Runtime.guardKey20 + 428703842, Runtime.transformWhitelistField(
+            "c6949ccd512754b94f27f4029fc0acc15de67945a0d401721f1c2abe46c4a8c3",
+            "hwid",
+            "2",
+            Runtime.hardwareId
+        ))
+        sharedState4.value = Runtime.encodeHex(289181186, Runtime.transformWhitelistField(
+            "c6949ccd512754b94f27f4029fc0acc15de67945a0d401721f1c2abe46c4a8c3",
+            "proof",
+            "3",
+            Runtime.whitelistKey .. ":" .. Runtime.hardwareId .. ":" .. sharedState.value
+        ))
+        local value = bit32.band(Runtime.guardKey20, Runtime.numberValue6)
+        sharedState5.value = Runtime.encodeHex(Runtime.guardState18 - 872440572, Runtime.transformWhitelistField(
+            "c6949ccd512754b94f27f4029fc0acc15de67945a0d401721f1c2abe46c4a8c3",
+            "name",
+            "4",
+            Runtime.name
+        ))
+        sharedState6.value = Runtime.encodeHex(
+            value + 196051042,
+            Runtime.transformWhitelistField("c6949ccd512754b94f27f4029fc0acc15de67945a0d401721f1c2abe46c4a8c3", "version", "5", "5.0")
+        )
+        Runtime.guardKey = 4201837151
+        local value2, value3, value4 = Runtime.requestWithTimeout({
+            Url = "https://banana-hub.xyz/api/v4/vrf" .. "?k=" .. sharedState2.value .. "&w=" .. sharedState3.value .. "&p=" .. sharedState4.value .. "&n=" .. sharedState5.value .. "&v=" .. sharedState6.value .. "&t=" .. sharedState.value .. "&fast=1",
+            Method = "GET",
+            Headers = {Accept = "application/json"},
+        }, 15)
+        Runtime.verificationResponse = value3
+        Runtime.verificationError = value4
+        return sharedState, sharedState2, sharedState3, sharedState4, sharedState5, sharedState6, value, value2, value3, value4, value2
     end
 
     -- Initialize settings
@@ -409,9 +434,9 @@ Recent output, oldest first (last 60 lines, E=error W=warn):
             end
 
             numberValue9 = 503856431
-            getgenv().__BF_PROGRESS = function() end -- loading UI disabled
+            getgenv().__BF_PROGRESS = handler8
 
-            getgenv().__BF_PROGRESS_CLOSE = function() local g=gethui and gethui() or game:GetService("CoreGui"); local s=g:FindFirstChild("BananaCatLoading"); if s then s:Destroy() end; return function()
+            getgenv().__BF_PROGRESS_CLOSE = function()
                 local genv9 = getgenv()
                 local genv10 = getgenv()
 
@@ -448,14 +473,6 @@ Recent output, oldest first (last 60 lines, E=error W=warn):
         end
 
         pcall(handler3)
-        -- force remove loading UI
-        pcall(function()
-            local cg = (gethui and gethui()) or game:GetService("CoreGui")
-            local s = cg:FindFirstChild("BananaCatLoading")
-            if s then s:Destroy() end
-            getgenv().__BF_PROGRESS = function() end
-            getgenv().__BF_PROGRESS_CLOSE = function() end
-        end)
         pcall(function()
             local numberValue = 525384568
             if getgenv().__BF_BOOT_LOG_CONNECTION then
@@ -67239,9 +67256,9 @@ return ebgzqifrwa, lebidlyjyf
                                 end
                                 return rejectWhitelist(Runtime.textValue2)
                             end
-                            return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                            return rejectWhitelist("A whitelist key is required.")
                         end
-                        return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                        return rejectWhitelist("A whitelist key is required.")
                     end
                 else
                     Runtime.whitelistKey = _G.Key
@@ -69414,9 +69431,9 @@ return ebgzqifrwa, lebidlyjyf
                                 end
                                 return rejectWhitelist(Runtime.textValue2)
                             end
-                            return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                            return rejectWhitelist("A whitelist key is required.")
                         end
-                        return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                        return rejectWhitelist("A whitelist key is required.")
                     end
                 end
                 Runtime.name = Runtime.localPlayer3.Name
@@ -71580,7 +71597,7 @@ return ebgzqifrwa, lebidlyjyf
                             end
                             return rejectWhitelist(Runtime.textValue2)
                         end
-                        return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                        return rejectWhitelist("A whitelist key is required.")
                     end
                 else
                     Runtime.name = "unknown"
@@ -73742,12 +73759,12 @@ return ebgzqifrwa, lebidlyjyf
                             end
                             return rejectWhitelist(Runtime.textValue2)
                         end
-                        return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                        return rejectWhitelist("A whitelist key is required.")
                     end
                 end
-                return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                return rejectWhitelist("A whitelist key is required.")
             end
-            return (function() print("[bypass] skipped: This executor does not support HTTP requests.") return true end)()
+            return rejectWhitelist("This executor does not support HTTP requests.")
         end
     end
     if type(Runtime.genv6.notifyLua) ~= "function" then
@@ -73757,14 +73774,6 @@ return ebgzqifrwa, lebidlyjyf
     else
         pcall(Runtime.genv6.notifyLua, "Whitelist đã chạy trước đó, không chạy lại lần 2.", "Chuoi Hub", 5)
     end
-    
--- HARD BYPASS (re-applied)
-rejectWhitelist = function(...) return true end
-if Runtime then
-    Runtime.verificationResponse = Runtime.verificationResponse or { StatusCode = 200, Body = '{"ok":true}' }
-    Runtime.verificationError = nil
-end
-
-print("[Banana Cat Hub] Whitelist bypassed - continuing")
-    -- return removed so script continues
+    print("[Chuoi Hub] Whitelist is already active in this session.")
+    return
 end
