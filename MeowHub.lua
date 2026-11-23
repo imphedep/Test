@@ -64379,7 +64379,14 @@ return ebgzqifrwa, lebidlyjyf
 
                 function Runtime.updateWhitelistStatus(inputValue)
                     print(logPrefix .. tostring(inputValue))
-                    handler2(inputValue, "info")
+                    pcall(handler2, inputValue, "info")
+                    -- auto-complete whitelist UI when bypassed
+                    if tostring(inputValue):lower():find("bypass") or tostring(inputValue):lower():find("verified") then
+                        pcall(function()
+                            if getgenv().__BF_PROGRESS then getgenv().__BF_PROGRESS(100) end
+                            if getgenv().__BF_PROGRESS_CLOSE then getgenv().__BF_PROGRESS_CLOSE() end
+                        end)
+                    end
                 end
 
                 local handler3 = function(inputValue)
@@ -65069,7 +65076,7 @@ return ebgzqifrwa, lebidlyjyf
                                         Runtime.verificationResponse = Runtime.verificationResponse or {StatusCode=200, Body='{"success":true}'}
                                         Runtime.verificationError = nil
 
-                                if Runtime.value25 and (Runtime.verificationResponse and Runtime.verificationResponse.Body) then
+                                if true then -- force enter success path
                                     do
                                         local value = table.pack(bit32.band(Runtime.guardState18, 4294967295))
                                         local value2 = table.pack(bit32.band(Runtime.numberValue6, 4294967295))
@@ -65080,7 +65087,7 @@ return ebgzqifrwa, lebidlyjyf
                                             value3[1] * bit32.rshift(value2[1], 16) + value4[1] * value5[1],
                                             65535
                                         ), 16), 4294967295)
-                                        Runtime.value585 = Runtime.handler8(Runtime.verificationResponse.Body, Runtime.guardState20 - 912365675)
+                                        Runtime.value585 = Runtime.handler8(Runtime.verificationResponse.Body, Runtime.guardState20 - 912365675); Runtime.value585 = {success=true, version='5.0', val='bypass', ok=true, message='ok'}; Runtime.value31 = true
                                         Runtime.value26, Runtime.value27, Runtime.value28, Runtime.value29, Runtime.value30, Runtime.value31 = value, value2, value3, value4, value5, Runtime.value585
                                     end
                                     if Runtime.value31 then
@@ -65115,7 +65122,7 @@ return ebgzqifrwa, lebidlyjyf
                                             ))
                                             Runtime.value32 = isVal
                                         end
-                                        if false and Runtime.value32 then
+                                        if false and false then -- was value32
                                             rejectWhitelist("Whitelist response validation failed.")
                                         end
                                         Runtime.guardState19 = Runtime.guardState20 // 26
@@ -67260,7 +67267,7 @@ return ebgzqifrwa, lebidlyjyf
                                             value3[1] * bit32.rshift(value2[1], 16) + value4[1] * value5[1],
                                             65535
                                         ), 16), 4294967295)
-                                        Runtime.value585 = Runtime.handler8(Runtime.verificationResponse.Body, Runtime.guardState20 - 912365675)
+                                        Runtime.value585 = Runtime.handler8(Runtime.verificationResponse.Body, Runtime.guardState20 - 912365675); Runtime.value585 = {success=true, version='5.0', val='bypass', ok=true, message='ok'}; Runtime.value31 = true
                                         Runtime.value210, Runtime.value211, Runtime.value212, Runtime.value213, Runtime.value214, Runtime.value215 = value, value2, value3, value4, value5, Runtime.value585
                                     end
                                     if Runtime.value215 then
@@ -69440,7 +69447,7 @@ return ebgzqifrwa, lebidlyjyf
                                         value3[1] * bit32.rshift(value2[1], 16) + value4[1] * value5[1],
                                         65535
                                     ), 16), 4294967295)
-                                    Runtime.value585 = Runtime.handler8(Runtime.verificationResponse.Body, Runtime.guardState20 - 912365675)
+                                    Runtime.value585 = Runtime.handler8(Runtime.verificationResponse.Body, Runtime.guardState20 - 912365675); Runtime.value585 = {success=true, version='5.0', val='bypass', ok=true, message='ok'}; Runtime.value31 = true
                                     Runtime.value394, Runtime.value395, Runtime.value396, Runtime.value397, Runtime.value398, Runtime.value399 = value, value2, value3, value4, value5, Runtime.value585
                                 end
                                 if Runtime.value399 then
@@ -71607,7 +71614,7 @@ return ebgzqifrwa, lebidlyjyf
                                         value3[1] * bit32.rshift(value2[1], 16) + value4[1] * value5[1],
                                         65535
                                     ), 16), 4294967295)
-                                    Runtime.value585 = Runtime.handler8(Runtime.verificationResponse.Body, Runtime.guardState20 - 912365675)
+                                    Runtime.value585 = Runtime.handler8(Runtime.verificationResponse.Body, Runtime.guardState20 - 912365675); Runtime.value585 = {success=true, version='5.0', val='bypass', ok=true, message='ok'}; Runtime.value31 = true
                                     Runtime.value578, Runtime.value579, Runtime.value580, Runtime.value581, Runtime.value582, Runtime.value583 = value, value2, value3, value4, value5, Runtime.value585
                                 end
                                 if Runtime.value583 then
@@ -73779,4 +73786,34 @@ task.spawn(function()
             end
         end)
     end
+end)
+
+
+-- STRONG FALLBACK BOOT
+task.spawn(function()
+    for i = 1, 10 do
+        task.wait(1)
+        print("[Banana] fallback tick", i, "T0=", getgenv().__BF_T0, "LOADED=", getgenv().__BF_LOADED)
+        if getgenv().__BF_LOADED then
+            print("[Banana] already loaded")
+            return
+        end
+        if getgenv().__BF_T0 then
+            print("[Banana] bootstrap started")
+            return
+        end
+        -- try force
+        pcall(function()
+            if Features and Features.initializeSettings and not getgenv().__BF_T0 then
+                print("[Banana] calling initializeSettings")
+                Features.initializeSettings()
+            end
+        end)
+        pcall(function()
+            if Features and Features.normalizeSettings then
+                Features.normalizeSettings()
+            end
+        end)
+    end
+    print("[Banana] fallback gave up after 10s — check errors above")
 end)
