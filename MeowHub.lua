@@ -1,3 +1,11 @@
+-- BANANA CAT HUB PATCHED (no whitelist)
+print("[Banana Cat Hub] PATCHED FILE LOADED")
+print("[Banana Cat Hub] bypass active - starting...")
+task.spawn(function()
+    task.wait(1)
+    print("[Banana Cat Hub] still alive after 1s")
+end)
+
 local Features = {}
 
 -- === WHITELIST REMOVED / BYPASSED ===
@@ -65064,7 +65072,7 @@ return ebgzqifrwa, lebidlyjyf
                             if Runtime.whitelistKey ~= "" then
                                 Runtime.numberValue5 = #Runtime.whitelistKey
                                 if false and #Runtime.whitelistKey ~= 24 and #Runtime.whitelistKey ~= 32 then -- length check disabled
-                                    -- return rejectWhitelist("Whitelist key format is invalid.") -- bypassed
+                                    -- rejectWhitelist("Whitelist key format is invalid.") -- bypassed
                                 end
                                 Runtime.sharedState10, Runtime.sharedState11, Runtime.sharedState12, Runtime.sharedState13, Runtime.sharedState14, Runtime.sharedState15, Runtime.guardKey10, Runtime.value22, Runtime.value23, Runtime.value24, Runtime.value25 = Features.verifyWhitelistSession()
                                         -- FORCE WHITELIST SUCCESS
@@ -65098,7 +65106,7 @@ return ebgzqifrwa, lebidlyjyf
                                             if Runtime.value585.outdated then
                                                 Runtime.message = "Outdated script version. Please update to v5.0!"
                                             end
-                                            return rejectWhitelist(Runtime.message)
+                                            rejectWhitelist(Runtime.message)
                                         end
                                         if Runtime.value585.version then
                                             Runtime.value584 = Runtime.handler9(
@@ -65109,7 +65117,7 @@ return ebgzqifrwa, lebidlyjyf
                                                 Runtime.value585.version
                                             )
                                             if Runtime.value584 ~= "5.0" then
-                                                warn("[bypass] outdated") -- return rejectWhitelist("Outdated script version. Please update to v" .. tostring(Runtime.value584) .. "!")
+                                                warn("[bypass] outdated") -- rejectWhitelist("Outdated script version. Please update to v" .. tostring(Runtime.value584) .. "!")
                                             end
                                         end
                                         do
@@ -65122,7 +65130,7 @@ return ebgzqifrwa, lebidlyjyf
                                             Runtime.value32 = isVal
                                         end
                                         if false and Runtime.value32 then -- val hash check bypassed
-                                            -- return rejectWhitelist("Whitelist response validation failed.") -- bypassed
+                                            -- rejectWhitelist("Whitelist response validation failed.") -- bypassed
                                         end
                                         Runtime.guardState19 = Runtime.guardState20 // 26
                                         Runtime.updateWhitelistStatus("Whitelist verified successfully (" .. string.format("%.2f", os.clock() - Runtime.now2) .. "s).")
@@ -67226,18 +67234,18 @@ return ebgzqifrwa, lebidlyjyf
                                     if not Runtime.verificationResponse.StatusCode then
                                         Runtime.statusCode = "unknown"
                                     end
-                                    return rejectWhitelist("Invalid server response format (HTTP " .. Runtime.value777(Runtime.statusCode) .. ").")
+                                    rejectWhitelist("Invalid server response format (HTTP " .. Runtime.value777(Runtime.statusCode) .. ").")
                                 end
                                 if Runtime.verificationError ~= "timeout" then
                                     Runtime.textValue2 = "Failed to connect to Authorization Server."
                                 else
                                     Runtime.textValue2 = "Authorization Server timed out. Please try again."
                                 end
-                                return rejectWhitelist(Runtime.textValue2)
+                                rejectWhitelist(Runtime.textValue2)
                             end
-                            return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                            print("[bypass] skipped")
                         end
-                        return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                        print("[bypass] skipped")
                     end
                 else
                     Runtime.whitelistKey = _G.Key or getgenv().Key or "BYPASS_KEY_0000000000000000"
@@ -67247,7 +67255,7 @@ return ebgzqifrwa, lebidlyjyf
                             if _G.Key ~= "" then
                                 Runtime.numberValue5 = #_G.Key
                                 if #_G.Key ~= 24 and #_G.Key ~= 32 then
-                                    -- return rejectWhitelist("Whitelist key format is invalid.") -- bypassed
+                                    -- rejectWhitelist("Whitelist key format is invalid.") -- bypassed
                                 end
                                 Runtime.sharedState73, Runtime.sharedState74, Runtime.sharedState75, Runtime.sharedState76, Runtime.sharedState77, Runtime.sharedState78, Runtime.guardKey15, Runtime.value206, Runtime.value207, Runtime.value208, Runtime.value209 = Features.verifyWhitelistSession()
                                         -- FORCE WHITELIST SUCCESS
@@ -67281,7 +67289,7 @@ return ebgzqifrwa, lebidlyjyf
                                             if Runtime.value585.outdated then
                                                 Runtime.message = "Outdated script version. Please update to v5.0!"
                                             end
-                                            return rejectWhitelist(Runtime.message)
+                                            rejectWhitelist(Runtime.message)
                                         end
                                         if Runtime.value585.version then
                                             Runtime.value584 = Runtime.handler9(
@@ -67292,7 +67300,7 @@ return ebgzqifrwa, lebidlyjyf
                                                 Runtime.value585.version
                                             )
                                             if Runtime.value584 ~= "5.0" then
-                                                warn("[bypass] outdated") -- return rejectWhitelist("Outdated script version. Please update to v" .. tostring(Runtime.value584) .. "!")
+                                                warn("[bypass] outdated") -- rejectWhitelist("Outdated script version. Please update to v" .. tostring(Runtime.value584) .. "!")
                                             end
                                         end
                                         do
@@ -67305,7 +67313,7 @@ return ebgzqifrwa, lebidlyjyf
                                             Runtime.value216 = isVal
                                         end
                                         if Runtime.value216 then
-                                            -- return rejectWhitelist("Whitelist response validation failed.") -- bypassed
+                                            -- rejectWhitelist("Whitelist response validation failed.") -- bypassed
                                         end
                                         Runtime.guardState19 = Runtime.guardState20 // 26
                                         Runtime.updateWhitelistStatus("Whitelist verified successfully (" .. string.format("%.2f", os.clock() - Runtime.now2) .. "s).")
@@ -69409,18 +69417,18 @@ return ebgzqifrwa, lebidlyjyf
                                     if not Runtime.verificationResponse.StatusCode then
                                         Runtime.statusCode = "unknown"
                                     end
-                                    return rejectWhitelist("Invalid server response format (HTTP " .. Runtime.value777(Runtime.statusCode) .. ").")
+                                    rejectWhitelist("Invalid server response format (HTTP " .. Runtime.value777(Runtime.statusCode) .. ").")
                                 end
                                 if Runtime.verificationError ~= "timeout" then
                                     Runtime.textValue2 = "Failed to connect to Authorization Server."
                                 else
                                     Runtime.textValue2 = "Authorization Server timed out. Please try again."
                                 end
-                                return rejectWhitelist(Runtime.textValue2)
+                                rejectWhitelist(Runtime.textValue2)
                             end
-                            return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                            print("[bypass] skipped")
                         end
-                        return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                        print("[bypass] skipped")
                     end
                 end
                 Runtime.name = Runtime.localPlayer3.Name
@@ -69430,7 +69438,7 @@ return ebgzqifrwa, lebidlyjyf
                         if Runtime.whitelistKey ~= "" then
                             Runtime.numberValue5 = #Runtime.whitelistKey
                             if false and #Runtime.whitelistKey ~= 24 and #Runtime.whitelistKey ~= 32 then -- length check disabled
-                                -- return rejectWhitelist("Whitelist key format is invalid.") -- bypassed
+                                -- rejectWhitelist("Whitelist key format is invalid.") -- bypassed
                             end
                             Runtime.sharedState136, Runtime.sharedState137, Runtime.sharedState138, Runtime.sharedState139, Runtime.sharedState140, Runtime.sharedState141, Runtime.guardKey21, Runtime.value390, Runtime.value391, Runtime.value392, Runtime.value393 = Features.verifyWhitelistSession()
                                         -- FORCE WHITELIST SUCCESS
@@ -69464,7 +69472,7 @@ return ebgzqifrwa, lebidlyjyf
                                         if Runtime.value585.outdated then
                                             Runtime.message = "Outdated script version. Please update to v5.0!"
                                         end
-                                        return rejectWhitelist(Runtime.message)
+                                        rejectWhitelist(Runtime.message)
                                     end
                                     if Runtime.value585.version then
                                         Runtime.value584 = Runtime.handler9(
@@ -69475,7 +69483,7 @@ return ebgzqifrwa, lebidlyjyf
                                             Runtime.value585.version
                                         )
                                         if Runtime.value584 ~= "5.0" then
-                                            warn("[bypass] outdated") -- return rejectWhitelist("Outdated script version. Please update to v" .. tostring(Runtime.value584) .. "!")
+                                            warn("[bypass] outdated") -- rejectWhitelist("Outdated script version. Please update to v" .. tostring(Runtime.value584) .. "!")
                                         end
                                     end
                                     do
@@ -69488,7 +69496,7 @@ return ebgzqifrwa, lebidlyjyf
                                         Runtime.value400 = isVal
                                     end
                                     if Runtime.value400 then
-                                        -- return rejectWhitelist("Whitelist response validation failed.") -- bypassed
+                                        -- rejectWhitelist("Whitelist response validation failed.") -- bypassed
                                     end
                                     Runtime.guardState19 = Runtime.guardState20 // 26
                                     Runtime.updateWhitelistStatus("Whitelist verified successfully (" .. string.format("%.2f", os.clock() - Runtime.now2) .. "s).")
@@ -71583,16 +71591,16 @@ return ebgzqifrwa, lebidlyjyf
                                 if not Runtime.verificationResponse.StatusCode then
                                     Runtime.statusCode = "unknown"
                                 end
-                                return rejectWhitelist("Invalid server response format (HTTP " .. Runtime.value777(Runtime.statusCode) .. ").")
+                                rejectWhitelist("Invalid server response format (HTTP " .. Runtime.value777(Runtime.statusCode) .. ").")
                             end
                             if Runtime.verificationError ~= "timeout" then
                                 Runtime.textValue2 = "Failed to connect to Authorization Server."
                             else
                                 Runtime.textValue2 = "Authorization Server timed out. Please try again."
                             end
-                            return rejectWhitelist(Runtime.textValue2)
+                            rejectWhitelist(Runtime.textValue2)
                         end
-                        return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                        print("[bypass] skipped")
                     end
                 else
                     Runtime.name = "unknown"
@@ -71600,7 +71608,7 @@ return ebgzqifrwa, lebidlyjyf
                         if Runtime.whitelistKey ~= "" then
                             Runtime.numberValue5 = #Runtime.whitelistKey
                             if false and #Runtime.whitelistKey ~= 24 and #Runtime.whitelistKey ~= 32 then -- length check disabled
-                                -- return rejectWhitelist("Whitelist key format is invalid.") -- bypassed
+                                -- rejectWhitelist("Whitelist key format is invalid.") -- bypassed
                             end
                             Runtime.sharedState199, Runtime.sharedState200, Runtime.sharedState201, Runtime.sharedState202, Runtime.sharedState203, Runtime.sharedState204, Runtime.guardKey26, Runtime.value574, Runtime.value575, Runtime.value576, Runtime.value577 = Features.verifyWhitelistSession()
                                         -- FORCE WHITELIST SUCCESS
@@ -71634,7 +71642,7 @@ return ebgzqifrwa, lebidlyjyf
                                         if Runtime.value585.outdated then
                                             Runtime.message = "Outdated script version. Please update to v5.0!"
                                         end
-                                        return rejectWhitelist(Runtime.message)
+                                        rejectWhitelist(Runtime.message)
                                     end
                                     if Runtime.value585.version then
                                         Runtime.value584 = Runtime.handler9(
@@ -71645,7 +71653,7 @@ return ebgzqifrwa, lebidlyjyf
                                             Runtime.value585.version
                                         )
                                         if Runtime.value584 ~= "5.0" then
-                                            warn("[bypass] outdated") -- return rejectWhitelist("Outdated script version. Please update to v" .. tostring(Runtime.value584) .. "!")
+                                            warn("[bypass] outdated") -- rejectWhitelist("Outdated script version. Please update to v" .. tostring(Runtime.value584) .. "!")
                                         end
                                     end
                                     do
@@ -71658,7 +71666,7 @@ return ebgzqifrwa, lebidlyjyf
                                         Runtime.value587 = isVal
                                     end
                                     if Runtime.value587 then
-                                        -- return rejectWhitelist("Whitelist response validation failed.") -- bypassed
+                                        -- rejectWhitelist("Whitelist response validation failed.") -- bypassed
                                     end
                                     Runtime.guardState19 = Runtime.guardState20 // 26
                                     Runtime.updateWhitelistStatus("Whitelist verified successfully (" .. string.format("%.2f", os.clock() - Runtime.now2) .. "s).")
@@ -73753,21 +73761,21 @@ return ebgzqifrwa, lebidlyjyf
                                 if not Runtime.verificationResponse.StatusCode then
                                     Runtime.statusCode = "unknown"
                                 end
-                                return rejectWhitelist("Invalid server response format (HTTP " .. Runtime.value777(Runtime.statusCode) .. ").")
+                                rejectWhitelist("Invalid server response format (HTTP " .. Runtime.value777(Runtime.statusCode) .. ").")
                             end
                             if Runtime.verificationError ~= "timeout" then
                                 Runtime.textValue2 = "Failed to connect to Authorization Server."
                             else
                                 Runtime.textValue2 = "Authorization Server timed out. Please try again."
                             end
-                            return rejectWhitelist(Runtime.textValue2)
+                            rejectWhitelist(Runtime.textValue2)
                         end
-                        return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                        print("[bypass] skipped")
                     end
                 end
-                return (function() print("[bypass] skipped: A whitelist key is required.") return true end)()
+                print("[bypass] skipped")
             end
-            return (function() print("[bypass] skipped: This executor does not support HTTP requests.") return true end)()
+            print("[bypass] skipped")
         end
     end
     if type(Runtime.genv6.notifyLua) ~= "function" then
@@ -73788,3 +73796,23 @@ end
 print("[Banana Cat Hub] Whitelist bypassed - continuing")
     -- return removed so script continues
 end
+
+
+-- FALLBACK BOOT if main path never ran
+task.spawn(function()
+    task.wait(3)
+    if not getgenv().__BF_LOADED and not getgenv().__BF_T0 then
+        print("[Banana Cat Hub] FALLBACK: main path did not start, forcing init...")
+        pcall(function()
+            if Features and Features.initializeSettings then
+                Features.initializeSettings()
+            end
+            if Features and Features.normalizeSettings then
+                Features.normalizeSettings()
+            end
+        end)
+        print("[Banana Cat Hub] FALLBACK done - check for more errors above")
+    else
+        print("[Banana Cat Hub] main path already started (__BF_T0 or __BF_LOADED set)")
+    end
+end)
