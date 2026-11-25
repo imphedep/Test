@@ -3,6 +3,20 @@
 getgenv().Key = getgenv().Key or "BYPASS_KEY_0000000000000000"
 print("[Banana Cat Hub V2] Updated logic boot")
 
+function LPH_NO_VIRTUALIZE(f) return f end
+function LPH_JIT(f) return f end
+function LPH_JIT_MAX(f) return f end
+function LPH_NO_UPVALUES(f) return f end
+function LPH_ENCSTR(s) return s end
+function LPH_ENCFUNC(f) return f end
+function LPH_NUMENC(n) return n end
+function LPH_ATTRIBUTES(...) end
+function VM(...) end
+function LPH_CRASH() end
+
+
+
+
 if getgenv().__BF_LOADED then
 	return getgenv().__BF_RESULT
 end
@@ -153,7 +167,7 @@ game:GetService("Players").LocalPlayer.Idled:connect(function()
 end)
 local A =
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/obiiyeuem/vthangsitink/refs/heads/main/zzzz.lua"))()
-Main = A.CreateMain({ Title = "Banana Cat Hub V2", Desc = " V2- Blox Fruit · Updated Logic" })
+Main = A.CreateMain({ Title = "Banana Cat Hub V2", Desc = " V2- Blox Fruit · By Phe" })
 PageShop = Main.CreatePage({ Page_Name = "Shop", Page_Title = "Shop" })
 getgenv().Options = A.Options
 SectionShopMisc = PageShop.CreateSection("Misc Shop")
@@ -273,7 +287,7 @@ REDEEM_CODES = {
 	"fruitconcepts",
 }
 SectionShopMisc.CreateButton({ Title = "Redeem Code" }, function()
-	LPH_ATTRIBUTES(VM(NONE))
+	-- LPH_NOP
 	for _, v in REDEEM_CODES do
 		game.ReplicatedStorage.Remotes.Redeem:InvokeServer(v)
 	end
@@ -3429,7 +3443,7 @@ local function B(Z, C, J, F)
 end
 
 function toTarget(P, e)
-	LPH_ATTRIBUTES(VM(NONE))
+	-- LPH_NOP
 	if typeof(P) ~= "CFrame" then
 		return
 	end
@@ -3904,7 +3918,7 @@ function attackMelee(m)
 	end
 end
 AttackFunction = function(G)
-	LPH_ATTRIBUTES(VM(NONE))
+	-- LPH_NOP
 	if t.Character.Stun.Value ~= 0 then
 		return
 	end
@@ -3921,7 +3935,7 @@ AttackFunction = function(G)
 	end
 end
 getgenv().AttackFunctionnhungSuperTrial = function()
-	LPH_ATTRIBUTES(VM(NONE))
+	-- LPH_NOP
 	if t.Character.Stun.Value ~= 0 then
 		return
 	end
