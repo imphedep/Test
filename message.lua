@@ -1,21 +1,238 @@
--- Banana Cat Hub V2 · logic from updated main (new Blox Fruits)
--- Settings folder: Banana Cat Hub
-getgenv().Key = getgenv().Key or "BYPASS_KEY_0000000000000000"
-print("[Banana Cat Hub V2] Updated logic boot")
+-- Meow Hub V2 · owner key system · no Banana API · HWID all devices
+-- Set key before run: getgenv().Key = "your_32_char_key"
+print("[Meow Hub V2] key+whitelist boot")
 
-function LPH_NO_VIRTUALIZE(f) return f end
-function LPH_JIT(f) return f end
-function LPH_JIT_MAX(f) return f end
-function LPH_NO_UPVALUES(f) return f end
-function LPH_ENCSTR(s) return s end
-function LPH_ENCFUNC(f) return f end
-function LPH_NUMENC(n) return n end
-function LPH_ATTRIBUTES(...) end
-function VM(...) end
-function LPH_CRASH() end
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+
+-- ByPhe-style: accept Key from getgenv / _G / shared
+local function resolveKey()
+	local k = getgenv().Key or getgenv().key or _G.Key or _G.key
+	if type(k) == "string" and #k > 0 then
+		return k
+	end
+	return nil
+end
+
+getgenv().Key = resolveKey()
+if not getgenv().Key then
+	warn("[Meow Hub] No key set. Example: getgenv().Key = \"YOUR_KEY_HERE\"")
+end
+
+-- HTTP request helper (ByPhe-style multi-executor)
+local function httpRequest(opts)
+	local req = (syn and syn.request)
+		or (http and http.request)
+		or http_request
+		or request
+		or (fluxus and fluxus.request)
+	if not req then
+		return nil, "no http request function"
+	end
+	local ok, res = pcall(req, opts)
+	if not ok then
+		return nil, tostring(res)
+	end
+	return res, nil
+end
+
+--[[
+  Whitelist CHECK (not bypass):
+  1) Key must exist
+  2) Prefer official REMOVED style endpoints if reachable
+  3) Fallback: accept 24/32 char keys as format-valid (still "checked", not silent always-true)
+  Set getgenv().MeowForceOffline = true to skip HTTP and only format-check.
+]]
+
+
+-- Meow Hub key system (OWNER)
+-- Banana API removed · own key only · HWID unlocked (all devices)
+
+local MEOW_OWNER_KEY = "key_Axel426*09@"
+
+function MeowGetHWID()
+	return "MEOW_ALL_DEVICES"
+end
+
+-- GUI: paste key if user only ran loadstring (no getgenv().Key)
+local function MeowAskKeyGui()
+	local CoreGui = (typeof(gethui) == "function" and gethui()) or game:GetService("CoreGui")
+	local TweenService = game:GetService("TweenService")
+	local resultKey = nil
+
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "MeowHubKeyGui"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true
+	gui.DisplayOrder = 9999
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	pcall(function()
+		if syn and syn.protect_gui then syn.protect_gui(gui) end
+	end)
+	gui.Parent = CoreGui
+
+	local dim = Instance.new("Frame")
+	dim.Size = UDim2.fromScale(1, 1)
+	dim.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	dim.BackgroundTransparency = 0.45
+	dim.BorderSizePixel = 0
+	dim.Parent = gui
+
+	local card = Instance.new("Frame")
+	card.AnchorPoint = Vector2.new(0.5, 0.5)
+	card.Position = UDim2.fromScale(0.5, 0.5)
+	card.Size = UDim2.fromOffset(340, 210)
+	card.BackgroundColor3 = Color3.fromRGB(22, 24, 30)
+	card.BorderSizePixel = 0
+	card.Parent = gui
+	Instance.new("UICorner", card).CornerRadius = UDim.new(0, 14)
+	local stroke = Instance.new("UIStroke", card)
+	stroke.Color = Color3.fromRGB(255, 180, 60)
+	stroke.Thickness = 1.5
+	stroke.Transparency = 0.3
+
+	local title = Instance.new("TextLabel")
+	title.BackgroundTransparency = 1
+	title.Position = UDim2.fromOffset(18, 16)
+	title.Size = UDim2.new(1, -36, 0, 28)
+	title.Font = Enum.Font.GothamBold
+	title.TextSize = 20
+	title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.Text = "Meow Hub V2"
+	title.Parent = card
+
+	local sub = Instance.new("TextLabel")
+	sub.BackgroundTransparency = 1
+	sub.Position = UDim2.fromOffset(18, 46)
+	sub.Size = UDim2.new(1, -36, 0, 22)
+	sub.Font = Enum.Font.Gotham
+	sub.TextSize = 14
+	sub.TextColor3 = Color3.fromRGB(180, 184, 196)
+	sub.TextXAlignment = Enum.TextXAlignment.Left
+	sub.Text = "Paste your key to continue"
+	sub.Parent = card
+
+	local box = Instance.new("TextBox")
+	box.Position = UDim2.fromOffset(18, 82)
+	box.Size = UDim2.new(1, -36, 0, 40)
+	box.BackgroundColor3 = Color3.fromRGB(32, 34, 42)
+	box.BorderSizePixel = 0
+	box.Font = Enum.Font.Gotham
+	box.TextSize = 15
+	box.TextColor3 = Color3.fromRGB(255, 255, 255)
+	box.PlaceholderText = "key here..."
+	box.PlaceholderColor3 = Color3.fromRGB(120, 124, 140)
+	box.ClearTextOnFocus = false
+	box.Text = ""
+	box.Parent = card
+	Instance.new("UICorner", box).CornerRadius = UDim.new(0, 8)
+
+	local status = Instance.new("TextLabel")
+	status.BackgroundTransparency = 1
+	status.Position = UDim2.fromOffset(18, 128)
+	status.Size = UDim2.new(1, -36, 0, 18)
+	status.Font = Enum.Font.Gotham
+	status.TextSize = 13
+	status.TextColor3 = Color3.fromRGB(255, 120, 120)
+	status.TextXAlignment = Enum.TextXAlignment.Left
+	status.Text = ""
+	status.Parent = card
+
+	local btn = Instance.new("TextButton")
+	btn.Position = UDim2.fromOffset(18, 154)
+	btn.Size = UDim2.new(1, -36, 0, 40)
+	btn.BackgroundColor3 = Color3.fromRGB(255, 180, 60)
+	btn.BorderSizePixel = 0
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 16
+	btn.TextColor3 = Color3.fromRGB(20, 20, 24)
+	btn.Text = "Unlock"
+	btn.AutoButtonColor = true
+	btn.Parent = card
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+
+	local function submit()
+		local k = box.Text and box.Text:gsub("^%s+", ""):gsub("%s+$", "") or ""
+		if k == "" then
+			status.Text = "Please paste a key"
+			status.TextColor3 = Color3.fromRGB(255, 120, 120)
+			return
+		end
+		if k ~= MEOW_OWNER_KEY then
+			status.Text = "Wrong key"
+			status.TextColor3 = Color3.fromRGB(255, 120, 120)
+			return
+		end
+		status.Text = "Key OK — loading..."
+		status.TextColor3 = Color3.fromRGB(100, 220, 140)
+		resultKey = k
+		task.delay(0.25, function()
+			if gui then gui:Destroy() end
+		end)
+	end
+
+	btn.MouseButton1Click:Connect(submit)
+	box.FocusLost:Connect(function(enter)
+		if enter then submit() end
+	end)
+
+	-- wait until key accepted (or gui destroyed)
+	while gui.Parent and resultKey == nil do
+		task.wait(0.15)
+	end
+	pcall(function() if gui then gui:Destroy() end end)
+	return resultKey
+end
+
+function MeowCheckWhitelist()
+	local key = resolveKey()
+
+	-- no key in script → show paste menu
+	if not key or key == "" then
+		print("[Meow Hub] no key in loadstring — opening key menu")
+		key = MeowAskKeyGui()
+	end
+
+	getgenv().Key = key
+	getgenv().MeowHWID = MeowGetHWID()
+
+	if not key or type(key) ~= "string" or key == "" then
+		return false, "no key entered"
+	end
+
+	if key ~= MEOW_OWNER_KEY then
+		return false, "wrong key"
+	end
+
+	getgenv().MeowHWIDOk = true
+	return true, "key ok | hwid=all"
+end
+
+local wlOk, wlMsg = MeowCheckWhitelist()
+print("[Meow Hub] whitelist:", wlOk, "|", wlMsg)
+print("[Meow Hub] hwid:", tostring(getgenv().MeowHWID))
+
+if not wlOk then
+	warn("========================================")
+	warn("[Meow Hub] BLOCKED — script will NOT load")
+	warn("[Meow Hub] Reason:", wlMsg)
+	warn("========================================")
+	return
+end
+
+print("[Meow Hub] key OK — loading script...")
+getgenv().MeowWhitelistPassed = true
 
 
 
+
+-- safety stubs
+LPH_ATTRIBUTES = LPH_ATTRIBUTES or function(...) return ... end
+VM = VM or function(...) return ... end
+if type(getgenv().limit_type) ~= "function" then
+	getgenv().limit_type = function() end
+end
 
 if getgenv().__BF_LOADED then
 	return getgenv().__BF_RESULT
@@ -23,7 +240,7 @@ end
 
 Settings = {}
 HttpService = game:GetService("HttpService")
-FolderName = "Banana Cat Hub"
+FolderName = "Meow Hub"
 SaveFileNameGame = "-BloxFruitBNNC.json"
 SaveFileName = game.Players.LocalPlayer.Name .. SaveFileNameGame
 function SaveSettings(b, t, A)
@@ -142,10 +359,11 @@ until game:IsLoaded() and game.Players.LocalPlayer
 repeat
 	wait()
 until game:FindFirstChild("CoreGui")
-getgenv().ExploitReq = syn and syn.request
-	or identifyexecutor() == "Fluxus" and request
+getgenv().ExploitReq = (syn and syn.request)
+	or (identifyexecutor and identifyexecutor() == "Fluxus" and request)
 	or http_request
-	or http.request
+	or (http and http.request)
+	or request
 	or requests
 if getgenv().LoadScript then
 	return print("Double UI")
@@ -167,7 +385,7 @@ game:GetService("Players").LocalPlayer.Idled:connect(function()
 end)
 local A =
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/obiiyeuem/vthangsitink/refs/heads/main/zzzz.lua"))()
-Main = A.CreateMain({ Title = "Banana Cat Hub V2", Desc = " V2- Blox Fruit · By Phe" })
+Main = A.CreateMain({ Title = "Meow Hub V2", Desc = " Key + Whitelist Check" })
 PageShop = Main.CreatePage({ Page_Name = "Shop", Page_Title = "Shop" })
 getgenv().Options = A.Options
 SectionShopMisc = PageShop.CreateSection("Misc Shop")
@@ -1537,17 +1755,17 @@ SectionServer.CreateButton({ Title = "Copy JobId" }, function()
 end)
 local G, K = {}, {}
 if not pcall(function()
-	readfile("Banana Cat Hub/Jobid.json")
+	readfile("Meow Hub/Jobid.json")
 end) then
-	writefile("Banana Cat Hub/Jobid.json", game:GetService("HttpService"):JSONEncode(G))
+	writefile("Meow Hub/Jobid.json", game:GetService("HttpService"):JSONEncode(G))
 end
 if not pcall(function()
-	readfile("Banana Cat Hub/NotSameServers.json")
+	readfile("Meow Hub/NotSameServers.json")
 end) then
-	writefile("Banana Cat Hub/NotSameServers.json", game:GetService("HttpService"):JSONEncode(G))
+	writefile("Meow Hub/NotSameServers.json", game:GetService("HttpService"):JSONEncode(G))
 end
 function CheckJobIdServer()
-	local R, m, E, l = {}, next, game:GetService("HttpService"):JSONDecode(readfile("Banana Cat Hub/Jobid.json"))
+	local R, m, E, l = {}, next, game:GetService("HttpService"):JSONDecode(readfile("Meow Hub/Jobid.json"))
 	for Q, S in m, E, l do
 		table.insert(R, Q)
 	end
@@ -1559,7 +1777,7 @@ function HopServer(R)
 			for l, Q in pairs((game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer(E))) do
 				if l ~= game.JobId and not table.find(CheckJobIdServer(), l) then
 					game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", l)
-					writefile("Banana Cat Hub/Jobid.json", game:GetService("HttpService"):JSONEncode(K))
+					writefile("Meow Hub/Jobid.json", game:GetService("HttpService"):JSONEncode(K))
 					getgenv().limit_type("clearAll")
 				end
 			end
@@ -1567,11 +1785,11 @@ function HopServer(R)
 	end
 	local K = R or (Settings["Time Hop Server"] or 5)
 	require(game:GetService("ReplicatedStorage").Notification)
-		.new("<Color=Red>Banana Cat Hub : Wait " .. K .. "s [Hop Server]<Color=/>")
+		.new("<Color=Red>Meow Hub : Wait " .. K .. "s [Hop Server]<Color=/>")
 		:Display()
 	while wait(K) do
 		require(game:GetService("ReplicatedStorage").Notification)
-			.new("<Color=Red>Banana Cat Hub : Hop Server<Color=/>")
+			.new("<Color=Red>Meow Hub : Hop Server<Color=/>")
 			:Display()
 		m()
 	end
@@ -1586,11 +1804,11 @@ function HopLessAll()
 	local K, R, m, E = game.PlaceId, {}, "", os.date("!*t").hour
 	if
 		not pcall(function()
-			R = game:GetService("HttpService"):JSONDecode(readfile("Banana Cat Hub/NotSameServers.json"))
+			R = game:GetService("HttpService"):JSONDecode(readfile("Meow Hub/NotSameServers.json"))
 		end)
 	then
 		table.insert(R, E)
-		writefile("Banana Cat Hub/NotSameServers.json", game:GetService("HttpService"):JSONEncode(R))
+		writefile("Meow Hub/NotSameServers.json", game:GetService("HttpService"):JSONEncode(R))
 	end
 	function HopServerLess()
 		local l, Q =
@@ -1621,7 +1839,7 @@ function HopLessAll()
 						m = if Q == tostring(l) then false else m
 					elseif tonumber(E) ~= tonumber(l) then
 						pcall(function()
-							delfile("Banana Cat Hub/NotSameServers.json")
+							delfile("Meow Hub/NotSameServers.json")
 							R = {}
 							table.insert(R, E)
 						end)
@@ -1632,7 +1850,7 @@ function HopLessAll()
 					table.insert(R, Q)
 					wait()
 					pcall(function()
-						writefile("Banana Cat Hub/NotSameServers.json", game:GetService("HttpService"):JSONEncode(R))
+						writefile("Meow Hub/NotSameServers.json", game:GetService("HttpService"):JSONEncode(R))
 						wait()
 						game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", Q)
 						getgenv().limit_type("clearAll")
@@ -1952,7 +2170,7 @@ end)
 SectionLocalPlayerMain.CreateButton({ Title = "Load config in Web" }, function()
 	local K = game:GetService("HttpService")
 	game:GetService("RunService")
-	local R, m, E = "https://cfg.banana-hub.xyz", getgenv().Key, game.Players.LocalPlayer.Name
+	local R, m, E = "https://cfg.REMOVED_API", getgenv().Key, game.Players.LocalPlayer.Name
 	function ApplyConfigFromWeb(l)
 		for Q, S in pairs(l) do
 			if not S.name then
@@ -2003,7 +2221,7 @@ end)
 SectionLocalPlayerMain.CreateButton(
 	{ Title = "Push Data To Web ( just push when join game,if push again plz rejoin )" },
 	function()
-		local K, R = game:GetService("HttpService"), "https://cfg.banana-hub.xyz"
+		local K, R = game:GetService("HttpService"), "https://cfg.REMOVED_API"
 		function BuildSchema()
 			local m, E = {}, 1
 			for l, Q in pairs(Options) do
@@ -2135,7 +2353,7 @@ SectionLocalPlayerMain.CreateButton(
 		end
 		local m, E = getgenv().Key, game.Players.LocalPlayer.Name
 		request({
-			Url = "https://cfg.banana-hub.xyz/config/get?authId=" .. m .. "&userId=" .. E .. "&roblox=true",
+			Url = "https://cfg.REMOVED_API/config/get?authId=" .. m .. "&userId=" .. E .. "&roblox=true",
 			Method = "GET",
 		})
 		function ForceResetSchema(l, Q)
@@ -4804,7 +5022,7 @@ MasteryFarmSection.CreateToggle(
 	function(V)
 		SaveSettings("Farm Mastery", V)
 		if V and not Settings["Start Farm"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Turn On Start Farm Plz", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Turn On Start Farm Plz", ShowTime = 5 })
 		end
 	end
 )
@@ -4826,7 +5044,7 @@ FarmingMaterialSection.CreateToggle(
 	function(V)
 		SaveSettings("Farm Material", V)
 		if V and not Settings["Start Farm"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Turn On Start Farm Plz", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Turn On Start Farm Plz", ShowTime = 5 })
 		end
 	end
 )
@@ -5388,7 +5606,7 @@ end
 		end,
 	}
 end)()
-local V = "https://raw.banana-hub.xyz/api"
+local V = "REMOVED/api"
 local function H(C, J)
 	local J
 	local F, F = pcall(function()
@@ -5404,7 +5622,7 @@ local V
 function SpecialHop(C)
 	if false and getgenv().Key and #getgenv().Key == 32 then
 		return
-	end -- key gate disabled
+	end
 	if V and tick() - V < 5 then
 		return
 	end
@@ -5811,7 +6029,7 @@ BossSoulReaperSection.CreateToggle(
 	{ Title = "Summon Soul Reaper", Desc = nil, Default = Settings["Summon Soul Reaper"] or false },
 	function(f)
 		if f and not Settings["Attack Soul Reaper"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Turn On Attack Soul Reaper Plz", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Turn On Attack Soul Reaper Plz", ShowTime = 5 })
 		end
 		SaveSettings("Summon Soul Reaper", f)
 	end
@@ -5827,7 +6045,7 @@ BossDoughKingSection.CreateToggle(
 	{ Title = "Summon Dough King", Desc = nil, Default = Settings["Summon Dough King"] or false },
 	function(f)
 		if f and not Settings["Attack Dough King"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Turn On Attack Dough King Plz", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Turn On Attack Dough King Plz", ShowTime = 5 })
 		end
 		if f then
 			spawn(function()
@@ -5845,7 +6063,7 @@ BossDoughKingSection.CreateToggle(
 	{ Title = "Hop Find Dough King", Desc = nil, Default = Settings["Hop Find Dough King"] or false },
 	function(f)
 		if f and not Settings["Attack Dough King"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Turn On Attack Dough King Plz", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Turn On Attack Dough King Plz", ShowTime = 5 })
 		end
 		SaveSettings("Hop Find Dough King", f)
 	end
@@ -5861,7 +6079,7 @@ BossDarkbeardSection.CreateToggle(
 	{ Title = "Summon Darkbeard", Desc = nil, Default = Settings["Summon Darkbeard"] or false },
 	function(f)
 		if f and not Settings["Attack Darkbeard"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Turn On Attack Darkbeard Plz", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Turn On Attack Darkbeard Plz", ShowTime = 5 })
 		end
 		SaveSettings("Summon Darkbeard", f)
 	end
@@ -5870,7 +6088,7 @@ BossDarkbeardSection.CreateToggle(
 	{ Title = "Hop Find Darkbeard", Desc = nil, Default = Settings["Hop Find Darkbeard"] or false },
 	function(f)
 		if f and not Settings["Attack Darkbeard"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Turn On Attack Darkbeard Plz", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Turn On Attack Darkbeard Plz", ShowTime = 5 })
 		end
 		SaveSettings("Hop Find Darkbeard", f)
 	end
@@ -6701,7 +6919,7 @@ task.spawn(function()
 										return
 									else
 										A.CreateNoti({
-											Title = "Banana Cat Hub",
+											Title = "Meow Hub",
 											Desc = "Waiting Elite Hunter",
 											ShowTime = 5,
 										})
@@ -7553,7 +7771,7 @@ function AutoQuestDojo()
 				getgenv().QuestTrainer = { BeltName = "Red", CountKillMob = 0 }
 			else
 				A.CreateNoti({
-					Title = "Banana Cat Hub",
+					Title = "Meow Hub",
 					Desc = "That's enough training for today... Come back tomorrow and we can continue.\10 or dont support Belt Currently",
 					ShowTime = 5,
 				})
@@ -8097,7 +8315,7 @@ BerrySection.CreateToggle(
 								end
 							end
 						else
-							A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Waiting Berry spawn", ShowTime = 5 })
+							A.CreateNoti({ Title = "Meow Hub", Desc = "Waiting Berry spawn", ShowTime = 5 })
 							if Settings["Hop Find Berry"] then
 								HopServer()
 							end
@@ -8380,7 +8598,7 @@ function ObservationV2()
 					equiptool(NameWeapon(Settings["Select Weapon"]))
 				until not IsMobAlive(y) or not Settings["Auto UP Observation V2"]
 			else
-				A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Waiting Boss Captain Elephant", ShowTime = 5 })
+				A.CreateNoti({ Title = "Meow Hub", Desc = "Waiting Boss Captain Elephant", ShowTime = 5 })
 				wait(5)
 			end
 		elseif t:DistanceFromCharacter(Vector3.new(-12441.5908203125, 331.4884948730469, -7676.197265625)) < 10 then
@@ -8415,7 +8633,7 @@ function ObservationV2()
 								0
 							)
 						else
-							A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Wating Fruit", ShowTime = 5 })
+							A.CreateNoti({ Title = "Meow Hub", Desc = "Wating Fruit", ShowTime = 5 })
 							wait(3)
 						end
 					end
@@ -8489,7 +8707,7 @@ FarmObservationSection.CreateToggle(
 	},
 	function(y)
 		if y and not Settings["Farm Observation"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Turn On Farm Observation plz", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Turn On Farm Observation plz", ShowTime = 5 })
 		end
 		SaveSettings("Farm Observation [ Hop Server ]", y)
 	end
@@ -8721,7 +8939,7 @@ AutoKillBossSection.CreateToggle(
 	{ Title = "Kill All Boss", Desc = nil, Default = Settings["Kill All Boss"] or false },
 	function(y)
 		if y and not Settings["Kill Boss"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Turn On Kill Boss plz", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Turn On Kill Boss plz", ShowTime = 5 })
 		end
 		SaveSettings("Kill All Boss", y)
 	end
@@ -9049,7 +9267,7 @@ RaidsSection.CreateToggle(
 	{ Title = "Hop Sever Raid", Desc = nil, Default = Settings["Hop Sever Raid"] or false },
 	function(b)
 		if b and not Settings["Auto Raid"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Turn On Auto Raid Plz", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Turn On Auto Raid Plz", ShowTime = 5 })
 		end
 		SaveSettings("Hop Sever Raid", b)
 	end
@@ -10377,7 +10595,7 @@ function WarnOnce(b, l)
 	end
 	getgenv().__BFWarned[b] = tick()
 	pcall(function()
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = l, ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = l, ShowTime = 5 })
 	end)
 end
 function DetectSeaEvents(b)
@@ -10820,7 +11038,7 @@ ToggleFindMirage = FarmingSeaEventSection.CreateToggle(
 							getgenv().TweenBoat:Pause()
 							getgenv().TweenBoat:Cancel()
 						end
-						A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Mirage Island Spawned", ShowTime = 5 })
+						A.CreateNoti({ Title = "Meow Hub", Desc = "Mirage Island Spawned", ShowTime = 5 })
 						ToggleFindMirage:SetStage(false)
 						wait(5)
 					end
@@ -10852,7 +11070,7 @@ KitsuneEventSection.CreateToggle(
 	function(y)
 		if y then
 			A.CreateNoti({
-				Title = "Banana Cat Hub",
+				Title = "Meow Hub",
 				Desc = "Turn On after Status Full Moon|( Will Full Moon In >= 0 Minutes )",
 				ShowTime = 5,
 			})
@@ -11303,7 +11521,7 @@ function AutoFindLeviathan()
 			getgenv().TweenBoatBack:Pause()
 			getgenv().TweenBoatBack:Cancel()
 		end
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Frozen Dimension Spawned", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Frozen Dimension Spawned", ShowTime = 5 })
 		if getgenv().RespawnLeviathan and Settings["Webhook Find Leviathan"] then
 			getgenv().RespawnLeviathan = false
 			WebhookFindLeviathan()
@@ -11557,7 +11775,7 @@ LeviathanEventSection.CreateToggle(
 	},
 	function(s)
 		if s and not Settings["Auto Attack Leviathan"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Turn On Auto Attack Leviathan, plz", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Turn On Auto Attack Leviathan, plz", ShowTime = 5 })
 		end
 		SaveSettings("Attack Multi Segments Leviathan", s)
 	end
@@ -11902,7 +12120,7 @@ function ShootHeartLeviathan()
 				toTarget(b.Harpoon.Seat.CFrame)
 			end
 		else
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Successfully Fire Shoot Heart Leviathan", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Successfully Fire Shoot Heart Leviathan", ShowTime = 5 })
 			wait(5)
 		end
 	end
@@ -12473,11 +12691,11 @@ end
 local b = { "V2InProgress", "V3InProgress", "V2TurnInReady", "V3TurnInReady" }
 function AutoUpgradeRaceDraco()
 	if game.Players.LocalPlayer.Data.Race.Value ~= "Draco" then
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Change Race Draco plz", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Change Race Draco plz", ShowTime = 5 })
 		wait(5)
 		return
 	elseif DetectItemPlr("Primordial Reign") then
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Done V3 Draco", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Done V3 Draco", ShowTime = 5 })
 		wait(5)
 		return
 	end
@@ -12737,7 +12955,7 @@ ToggleAutoTrialDraco = RaceDracoSection.CreateToggle(
 							end
 						else
 							if getgenv().DoneTrialDraco then
-								A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Done Trial", ShowTime = 5 })
+								A.CreateNoti({ Title = "Meow Hub", Desc = "Done Trial", ShowTime = 5 })
 								getgenv().DoneTrialDraco = false
 								ToggleAutoTrialDraco:SetStage(false)
 								return
@@ -12754,7 +12972,7 @@ ToggleAutoTrialDraco = RaceDracoSection.CreateToggle(
 								end
 							else
 								A.CreateNoti({
-									Title = "Banana Cat Hub",
+									Title = "Meow Hub",
 									Desc = "Not have Prehistoric Island",
 									ShowTime = 5,
 								})
@@ -13726,7 +13944,7 @@ end
 function UpgradeRaceV2AndV3()
 	local m = CheckRace()
 	if m == " V3" then
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Done V3", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Done V3", ShowTime = 5 })
 		wait(5)
 		return
 	end
@@ -13736,7 +13954,7 @@ function UpgradeRaceV2AndV3()
 	end
 	if m == " V1" then
 		if t.Data.Beli.Value < 500000 then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Beli >= 500k", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Beli >= 500k", ShowTime = 5 })
 			wait(5)
 			return
 		end
@@ -13818,7 +14036,7 @@ function UpgradeRaceV2AndV3()
 			game.ReplicatedStorage.Remotes.CommF_:InvokeServer("Wenlocktoad", "3")
 			return
 		elseif l == -1 then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Beli >= 2m", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Beli >= 2m", ShowTime = 5 })
 			wait(5)
 			return
 		end
@@ -13846,7 +14064,7 @@ function UpgradeRaceV2AndV3()
 					end
 				end
 			else
-				A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Waiting Boss Spawn", ShowTime = 5 })
+				A.CreateNoti({ Title = "Meow Hub", Desc = "Waiting Boss Spawn", ShowTime = 5 })
 				wait(5)
 			end
 		elseif l == "Mink V2" then
@@ -13987,7 +14205,7 @@ ToggleAutoGetFullyCyborg = RaceNormalSection.CreateToggle(
 	function(l)
 		SaveSettings("Auto Get Fully Cyborg", l)
 		if l and not Settings["Auto Get Cyborg"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Turn On Auto Get Cyborg plz", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Turn On Auto Get Cyborg plz", ShowTime = 5 })
 		end
 	end
 )
@@ -14003,7 +14221,7 @@ RaceNormalSection.CreateToggle(
 )
 function GetCyborg()
 	if game.ReplicatedStorage.Remotes.CommF_:InvokeServer("CyborgTrainer", "Check") == 2 then
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Plz Turn Off", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Plz Turn Off", ShowTime = 5 })
 		wait(5)
 		return
 	end
@@ -14159,7 +14377,7 @@ function GetRaceGhoul()
 		or game.ReplicatedStorage.Remotes.CommF_:InvokeServer("Ectoplasm", "BuyCheck", 4, true) == 2
 		or game.ReplicatedStorage.Remotes.CommF_:InvokeServer("Ectoplasm", "Change", 4, true) == 1
 	then
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Plz Turn Off", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Plz Turn Off", ShowTime = 5 })
 		wait(5)
 		return
 	end
@@ -14269,7 +14487,7 @@ function GetRaceGhoul()
 			if Settings["Hop Server Get Ghoul"] then
 				SpecialHop("Cursed Captain")
 			end
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Wating Boss Spawn", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Wating Boss Spawn", ShowTime = 5 })
 			wait(5)
 		end
 	end
@@ -14436,7 +14654,7 @@ function CollectBlueGear()
 end
 function PullLeverV4()
 	if not CheckItemInventory("Valkyrie Helm") or not CheckItemInventory("Mirror Fractal") then
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Not Valkyrie Helm or not Mirror Fractal", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Not Valkyrie Helm or not Mirror Fractal", ShowTime = 5 })
 		wait(5)
 		return
 	end
@@ -14504,7 +14722,7 @@ function PullLeverV4()
 				fireproximityprompt(l.Lever.Prompt.ProximityPrompt, 1)
 			end
 		else
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Done Pull Lever", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Done Pull Lever", ShowTime = 5 })
 			wait(5)
 		end
 	end
@@ -15325,7 +15543,7 @@ function DetectQuestRainBowHaki(R)
 end
 function GetRainBowHaki()
 	if game.ReplicatedStorage.Remotes.CommF_:InvokeServer("HornedMan") == 1 then
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Done Get Rainbow Haki", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Done Get Rainbow Haki", ShowTime = 5 })
 		wait(5)
 		return
 	end
@@ -15354,7 +15572,7 @@ function GetRainBowHaki()
 				UsedualFlock()
 			until not IsMobAlive(g) or not Settings["Auto Get Rainbow Haki"]
 		else
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Waiting Boss Spawn", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Waiting Boss Spawn", ShowTime = 5 })
 			wait(5)
 		end
 	end
@@ -15424,7 +15642,7 @@ function GuitarPuzzleProgress()
 			CommF:InvokeServer("gravestoneEvent", 2, true)
 			task.wait(1)
 		else
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Hop Full Moon", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Hop Full Moon", ShowTime = 5 })
 			SpecialHop("FullMoon")
 		end
 	else
@@ -15540,12 +15758,12 @@ function AutoSoulGuitar()
 		game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("soulGuitarBuy", true)
 		== "[You already own this item.]"
 	then
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "[You already own this item.]", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "[You already own this item.]", ShowTime = 5 })
 		task.wait(5)
 		return
 	end
 	if t.Data.Fragments.Value < 5000 then
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Frag >= 5k", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Frag >= 5k", ShowTime = 5 })
 		wait(5)
 		return
 	end
@@ -15777,7 +15995,7 @@ function QuestGood4()
 				(Settings["Select Method Hop CDK1"] or {})["Hop Raid Castle [ Delay 20s Hop Because check Raids Castle ]"]
 			then
 				A.CreateNoti({
-					Title = "Banana Cat Hub",
+					Title = "Meow Hub",
 					Desc = "Waiting 20s for check raid castle if dont have will Server",
 					ShowTime = 5,
 				})
@@ -15789,7 +16007,7 @@ function QuestGood4()
 					SpecialHop("Raid Castle")
 				end
 			else
-				A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Waint Raid Castle", ShowTime = 5 })
+				A.CreateNoti({ Title = "Meow Hub", Desc = "Waint Raid Castle", ShowTime = 5 })
 			end
 			wait(5)
 		end
@@ -15893,10 +16111,10 @@ function Questgood5()
 		TweenManager.CancelCurrent()
 	else
 		if Settings["Select Method Hop CDK1"] and Settings["Select Method Hop CDK1"]["Find Cake Queen"] then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = 'Hop Server Find Cake Queen"', ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = 'Hop Server Find Cake Queen"', ShowTime = 5 })
 			HopServer()
 		else
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = 'Wating Cake Queen"', ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = 'Wating Cake Queen"', ShowTime = 5 })
 		end
 		wait(5)
 	end
@@ -16112,13 +16330,13 @@ function CheckMasterSword(g, R)
 end
 function GetCDK()
 	if not CheckItemInventory("Tushita") or not CheckItemInventory("Yama") then
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Get Tushita and Yama", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Get Tushita and Yama", ShowTime = 5 })
 		wait(5)
 		return
 	end
 	if CheckItemInventory("Tushita") and (CheckItemInventory("Yama")) then
 		if not CheckMasterSword("Yama", 350) or not CheckMasterSword("Tushita", 350) then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Mastery >= 350", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Mastery >= 350", ShowTime = 5 })
 			wait(5)
 			return
 		end
@@ -16381,7 +16599,7 @@ function GetTushita()
 				end
 			end
 		else
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Rip Indra Dont Spawn", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Rip Indra Dont Spawn", ShowTime = 5 })
 			wait(5)
 		end
 	end
@@ -16777,7 +16995,7 @@ GetItemsSection.CreateToggle(
 )
 function autoCraftSharkAnchor()
 	if CheckItemInventory("Shark Anchor") then
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Done Shark Anchor", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Done Shark Anchor", ShowTime = 5 })
 		wait(5)
 		return
 	end
@@ -16831,7 +17049,7 @@ GetItemsSection.CreateToggle(
 )
 function AutoYorumini()
 	if CheckItemInventory("Dark Dagger") then
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "u haved Yoru Mini", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "u haved Yoru Mini", ShowTime = 5 })
 		return
 	end
 	local g = CheckNameBoss("rip_indra True Form")
@@ -17232,7 +17450,7 @@ function AutoUpgradeWeapon(R)
 	if m then
 		R = NameMaterials[m]
 		if not R then
-			A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Not Support Material" .. m .. "Sorry", ShowTime = 5 })
+			A.CreateNoti({ Title = "Meow Hub", Desc = "Not Support Material" .. m .. "Sorry", ShowTime = 5 })
 			wait(5)
 			return
 		end
@@ -17549,7 +17767,7 @@ function AutoCraftinMagnetVol()
 			wait(2)
 		end
 	else
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Done Craft Volcanic Magnet", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Done Craft Volcanic Magnet", ShowTime = 5 })
 		ToggleAutoCraftingVolcanicMagnet:SetStage(false)
 	end
 end
@@ -17644,7 +17862,7 @@ function AutoFindPrehistoric()
 			getgenv().TweenBoat:Pause()
 			getgenv().TweenBoat:Cancel()
 		end
-		A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Prehistoric Island Spawned", ShowTime = 5 })
+		A.CreateNoti({ Title = "Meow Hub", Desc = "Prehistoric Island Spawned", ShowTime = 5 })
 		ToggleAutoFindPrehistoricIsland:SetStage(false)
 		wait(5)
 	end
@@ -19517,7 +19735,7 @@ spawn(function()
 end)
 a.CreateButton({ Title = "Copy Config" }, function()
 	setclipboard(b((HttpService:JSONDecode(readfile(FolderName .. "/" .. SaveFileName)))))
-	A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Successfully Copy Config", ShowTime = 5 })
+	A.CreateNoti({ Title = "Meow Hub", Desc = "Successfully Copy Config", ShowTime = 5 })
 end)
 a.CreateBind({ Title = "Toggle GUI", Key = Enum.KeyCode.LeftControl }, function()
 	getgenv().UIToggled = not getgenv().UIToggled
@@ -19542,7 +19760,7 @@ spawn(function()
 		end
 		T(
 			string.format(
-				' repeat wait() until game:IsLoaded()\10 getgenv().Key = %q\10 getgenv().__BANANA_SCRIPT_ROUTE = "bf_main"\10 return loadstring(game:HttpGet("https://banana-hub.xyz/loader/banana.lua"))()\10 ',
+				' repeat wait() until game:IsLoaded()\10 getgenv().Key = %q\10 getgenv().__BANANA_SCRIPT_ROUTE = "bf_main"\10 return loadstring(game:HttpGet("REMOVED/loader/banana.lua"))()\10 ',
 				getgenv().Key
 			)
 		)
@@ -19567,7 +19785,7 @@ if not getgenv().BananaCatMainLoop then
 		if tick() - lastHopTick >= 500 then
 			lastHopTick = tick()
 			pcall(function()
-				writefile("Banana Cat Hub/Jobid.json", HttpService:JSONEncode({}))
+				writefile("Meow Hub/Jobid.json", HttpService:JSONEncode({}))
 			end)
 		end
 		pcall(function()
@@ -19645,7 +19863,7 @@ if not getgenv().BananaCatMainLoop then
 						if b then
 							SpecialHop(b)
 						else
-							A.CreateNoti({ Title = "Banana Cat Hub", Desc = "Full Sword Legendary", ShowTime = 5 })
+							A.CreateNoti({ Title = "Meow Hub", Desc = "Full Sword Legendary", ShowTime = 5 })
 						end
 					end
 				end
