@@ -1,11 +1,13 @@
--- Meow Hub V2 · owner key system · no Banana API · HWID all devices
--- Set key before run: getgenv().Key = "your_32_char_key"
-print("[Meow Hub V2] key+whitelist boot")
+-- Meow Hub V2 · owner key required · full 17 tabs · zzzz UI (no TopiUI)
+-- Logic base: updated Banana main (+ runtime fixes style from fixed forks)
+getgenv().Key = getgenv().Key -- do not invent key
+print("[Meow Hub V2] boot")
 
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 
--- ByPhe-style: accept Key from getgenv / _G / shared
+local MEOW_OWNER_KEY = "key_Axel426*09@"
+
 local function resolveKey()
 	local k = getgenv().Key or getgenv().key or _G.Key or _G.key
 	if type(k) == "string" and #k > 0 then
@@ -14,90 +16,44 @@ local function resolveKey()
 	return nil
 end
 
-getgenv().Key = resolveKey()
-if not getgenv().Key then
-	warn("[Meow Hub] No key set. Example: getgenv().Key = \"YOUR_KEY_HERE\"")
-end
-
--- HTTP request helper (ByPhe-style multi-executor)
-local function httpRequest(opts)
-	local req = (syn and syn.request)
-		or (http and http.request)
-		or http_request
-		or request
-		or (fluxus and fluxus.request)
-	if not req then
-		return nil, "no http request function"
-	end
-	local ok, res = pcall(req, opts)
-	if not ok then
-		return nil, tostring(res)
-	end
-	return res, nil
-end
-
---[[
-  Whitelist CHECK (not bypass):
-  1) Key must exist
-  2) Prefer official REMOVED style endpoints if reachable
-  3) Fallback: accept 24/32 char keys as format-valid (still "checked", not silent always-true)
-  Set getgenv().MeowForceOffline = true to skip HTTP and only format-check.
-]]
-
-
--- Meow Hub key system (OWNER)
--- Banana API removed · own key only · HWID unlocked (all devices)
-
-
-local MEOW_OWNER_KEY = "key_Axel426*09@"
-
 function MeowGetHWID()
 	return "MEOW_ALL_DEVICES"
 end
 
--- KEY REQUIRED — no GUI, no no-key path
 function MeowCheckWhitelist()
 	local key = resolveKey()
 	getgenv().Key = key
 	getgenv().MeowHWID = MeowGetHWID()
-
-	if not key or type(key) ~= "string" or key == "" then
-		return false, "KEY REQUIRED — use: getgenv().Key = \"your_key\" before loadstring"
+	if not key or key == "" then
+		return false, "KEY REQUIRED — getgenv().Key = \"key_Axel426*09@\" before loadstring"
 	end
-
 	if key ~= MEOW_OWNER_KEY then
 		return false, "wrong key"
 	end
-
 	getgenv().MeowHWIDOk = true
 	return true, "key ok | hwid=all"
 end
 
 local wlOk, wlMsg = MeowCheckWhitelist()
 print("[Meow Hub] whitelist:", wlOk, "|", wlMsg)
-print("[Meow Hub] hwid:", tostring(getgenv().MeowHWID))
-
 if not wlOk then
-	warn("========================================")
-	warn("[Meow Hub] BLOCKED — KEY REQUIRED")
-	warn("[Meow Hub] Reason:", wlMsg)
-	warn("[Meow Hub] Example:")
-	warn('  getgenv().Key = "key_Axel426*09@"')
-	warn('  loadstring(game:HttpGet("..."))()')
-	warn("========================================")
+	warn("[Meow Hub] BLOCKED — KEY REQUIRED:", wlMsg)
 	return
 end
-
-print("[Meow Hub] key OK — loading script...")
+print("[Meow Hub] key OK — loading...")
 getgenv().MeowWhitelistPassed = true
 
-
-
-
-
--- safety stubs
+-- runtime stubs (Topi/fetched-style safety, no Topi library)
 LPH_ATTRIBUTES = LPH_ATTRIBUTES or function(...) return ... end
 VM = VM or function(...) return ... end
+function LPH_NO_VIRTUALIZE(f) return f end
+function LPH_JIT(f) return f end
+function LPH_JIT_MAX(f) return f end
+function LPH_NO_UPVALUES(f) return f end
+function LPH_ENCSTR(s) return s end
+function LPH_ENCFUNC(f) return f end
+function LPH_NUMENC(n) return n end
+function LPH_CRASH() end
 if type(getgenv().limit_type) ~= "function" then
 	getgenv().limit_type = function() end
 end
@@ -253,7 +209,7 @@ game:GetService("Players").LocalPlayer.Idled:connect(function()
 end)
 local A =
 	loadstring(game:HttpGet("https://raw.githubusercontent.com/obiiyeuem/vthangsitink/refs/heads/main/zzzz.lua"))()
-Main = A.CreateMain({ Title = "Meow Hub V2", Desc = " Key + Whitelist Check" })
+Main = A.CreateMain({ Title = "Meow Hub V2", Desc = " - V2 Blox Fruit · By Phe" })
 PageShop = Main.CreatePage({ Page_Name = "Shop", Page_Title = "Shop" })
 getgenv().Options = A.Options
 SectionShopMisc = PageShop.CreateSection("Misc Shop")
@@ -2038,7 +1994,7 @@ end)
 SectionLocalPlayerMain.CreateButton({ Title = "Load config in Web" }, function()
 	local K = game:GetService("HttpService")
 	game:GetService("RunService")
-	local R, m, E = "https://cfg.REMOVED_API", getgenv().Key, game.Players.LocalPlayer.Name
+	local R, m, E = "https://cfg.banana-hub.xyz", getgenv().Key, game.Players.LocalPlayer.Name
 	function ApplyConfigFromWeb(l)
 		for Q, S in pairs(l) do
 			if not S.name then
@@ -2089,7 +2045,7 @@ end)
 SectionLocalPlayerMain.CreateButton(
 	{ Title = "Push Data To Web ( just push when join game,if push again plz rejoin )" },
 	function()
-		local K, R = game:GetService("HttpService"), "https://cfg.REMOVED_API"
+		local K, R = game:GetService("HttpService"), "https://cfg.banana-hub.xyz"
 		function BuildSchema()
 			local m, E = {}, 1
 			for l, Q in pairs(Options) do
@@ -2221,7 +2177,7 @@ SectionLocalPlayerMain.CreateButton(
 		end
 		local m, E = getgenv().Key, game.Players.LocalPlayer.Name
 		request({
-			Url = "https://cfg.REMOVED_API/config/get?authId=" .. m .. "&userId=" .. E .. "&roblox=true",
+			Url = "https://cfg.banana-hub.xyz/config/get?authId=" .. m .. "&userId=" .. E .. "&roblox=true",
 			Method = "GET",
 		})
 		function ForceResetSchema(l, Q)
@@ -5474,7 +5430,7 @@ end
 		end,
 	}
 end)()
-local V = "REMOVED/api"
+local V = "https://raw.banana-hub.xyz/api"
 local function H(C, J)
 	local J
 	local F, F = pcall(function()
@@ -19628,7 +19584,7 @@ spawn(function()
 		end
 		T(
 			string.format(
-				' repeat wait() until game:IsLoaded()\10 getgenv().Key = %q\10 getgenv().__BANANA_SCRIPT_ROUTE = "bf_main"\10 return loadstring(game:HttpGet("REMOVED/loader/banana.lua"))()\10 ',
+				' repeat wait() until game:IsLoaded()\10 getgenv().Key = %q\10 getgenv().__BANANA_SCRIPT_ROUTE = "bf_main"\10 return loadstring(game:HttpGet("https://banana-hub.xyz/loader/banana.lua"))()\10 ',
 				getgenv().Key
 			)
 		)
